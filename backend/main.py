@@ -1,5 +1,5 @@
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
@@ -9,6 +9,15 @@ load_dotenv()
 
 # Create FastAPI app
 app = FastAPI()
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Configure Gemini API
 genai.configure(
@@ -27,8 +36,8 @@ def home():
         "message": "Backend is working"
     }
 
-# AI route
-@app.get("/analyze")
+# Analyze route
+@app.post("/analyze")
 def analyze():
 
     response = model.generate_content(
@@ -36,13 +45,5 @@ def analyze():
     )
 
     return {
-        "result": response.text
+        "analysis": response.text
     }
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
