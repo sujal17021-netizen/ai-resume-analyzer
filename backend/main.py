@@ -4,8 +4,10 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 
+# Load env
 load_dotenv()
 
+# FastAPI app
 app = FastAPI()
 
 # CORS
@@ -17,23 +19,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Gemini
+# Gemini config
 genai.configure(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
 model = genai.GenerativeModel("gemini-1.5-flash")
 
+# Home route
 @app.get("/")
 def home():
     return {"message": "Backend working"}
 
+# Analyze route
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...)):
 
-    response = model.generate_content(
-        "Give 3 tips to improve a software engineering resume."
-    )
+    # Read uploaded file
+    content = await file.read()
+
+    prompt = """
+    Analyze this resume and give:
+    1. Strengths
+    2. Weaknesses
+    3. Skills improvement suggestions
+    """
+
+    response = model.generate_content(prompt)
 
     return {
         "analysis": response.text
