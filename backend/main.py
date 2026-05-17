@@ -1,3 +1,4 @@
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 import google.generativeai as genai
 from dotenv import load_dotenv
@@ -37,3 +38,11 @@ def analyze():
     return {
         "result": response.text
     }
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
