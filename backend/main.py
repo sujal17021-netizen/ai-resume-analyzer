@@ -1,5 +1,5 @@
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, UploadFile, File
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
@@ -38,7 +38,7 @@ def home():
 
 # Analyze route
 @app.post("/analyze")
-def analyze():
+async def analyze(file: UploadFile = File(...)):
 
     response = model.generate_content(
         "Give 3 tips to improve a software engineering resume."
