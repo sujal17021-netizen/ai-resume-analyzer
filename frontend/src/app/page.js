@@ -19,10 +19,17 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/analyze", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/analyze`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to analyze resume");
+      }
 
       const data = await response.json();
       setResult(data.analysis);
@@ -50,6 +57,7 @@ export default function Home() {
 
         <button
           onClick={handleUpload}
+          disabled={loading}
           className="bg-black text-white px-6 py-3 rounded-lg"
         >
           {loading ? "Analyzing..." : "Analyze Resume"}
