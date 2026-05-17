@@ -4,13 +4,11 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 import os
 
-# Load environment variables
 load_dotenv()
 
-# Create FastAPI app
 app = FastAPI()
 
-# Enable CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,24 +17,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure Gemini API
+# Gemini
 genai.configure(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
-# Load Gemini model
-model = genai.GenerativeModel(
-    "gemini-1.5-flash"
-)
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-# Home route
 @app.get("/")
 def home():
-    return {
-        "message": "Backend is working"
-    }
+    return {"message": "Backend working"}
 
-# Analyze route
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...)):
 
