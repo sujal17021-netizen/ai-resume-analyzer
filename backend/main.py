@@ -30,7 +30,7 @@ async def analyze(file: UploadFile = File(...)):
     await file.read()
 
     response = client.models.generate_content(
-        model="gemini-1.5-flash",
+        model="gemini-2.0-flash",
         contents="Give 3 resume improvement tips."
     )
 
