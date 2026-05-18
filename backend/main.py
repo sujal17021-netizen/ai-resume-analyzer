@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
+print(os.getenv("GEMINI_API_KEY"))
 
 app = FastAPI()
 
@@ -30,7 +31,7 @@ async def analyze(file: UploadFile = File(...)):
     await file.read()
 
     response = client.models.generate_content(
-        model="gemini-2.0-flash",
+        model = genai.GenerativeModel("gemini-2.5-flash"),
         contents="Give 3 resume improvement tips."
     )
 
