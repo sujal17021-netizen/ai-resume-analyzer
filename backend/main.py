@@ -5,14 +5,15 @@ from dotenv import load_dotenv
 import os
 import pdfplumber
 import io
+import json
 
-# Load env
+# Load environment variables
 load_dotenv()
 
 # FastAPI app
 app = FastAPI()
 
-# CORS
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,11 +22,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Gemini config
+# Configure Gemini
 genai.configure(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
+# Gemini model
 model = genai.GenerativeModel("gemini-2.5-flash")
 
 # Home route
@@ -33,7 +35,7 @@ model = genai.GenerativeModel("gemini-2.5-flash")
 def home():
     return {"message": "Backend working"}
 
-# Analyze route
+# Analyze resume route
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...)):
 
@@ -49,23 +51,65 @@ async def analyze(file: UploadFile = File(...)):
             if text:
                 pdf_text += text + "\n"
 
-    # Prompt
+    # ATS Prompt
     prompt = f"""
-    Analyze this resume and provide:
+    You are an advanced ATS Resume Analyzer.
 
-    1. Strengths
-    2. Weaknesses
-    3. Missing Skills
-    4. ATS Score
-    5. Improvement Suggestions
+    Analyze the following resume professionally.
+
+    Return ONLY valid JSON.
 
     Resume:
     {pdf_text}
+
+    JSON format:
+    {{
+      "ats_score": 82,
+      "breakdown": {{
+        "skills_match": 20,
+        "formatting": 12,
+        "keywords": 16,
+        "experience": 18,
+        "readability": 8,
+        "grammar": 9
+      }},
+      "strengths": [
+        "Strong technical skills",
+        "Good project experience"
+      ],
+      "weaknesses": [
+        "Missing quantified achievements",
+        "Formatting can be improved"
+      ],
+      "missing_skills": [
+        "Docker",
+        "AWS"
+      ],
+      "suggestions": [
+        "Add measurable achievements",
+        "Improve resume formatting",
+        "Include more ATS keywords"
+      ]
+    }}
     """
 
-    # Gemini response
-    response = model.generate_content(prompt)
+    try:
+        # Generate response
+        response = model.generate_content(prompt)
 
-    return {
-        "analysis": response.text
-    }
+        # Clean response text
+        raw_text = response.text.strip()
+
+        # Remove markdown formatting if Gemini adds it
+        raw_text = raw_text.replace("```json", "")
+        raw_text = raw_text.replace("```", "")
+
+        # Convert JSON string to Python dictionary
+        data = json.loads(raw_text)
+
+        return data
+
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
