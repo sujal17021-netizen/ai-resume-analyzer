@@ -8,7 +8,6 @@ load_dotenv()
 
 app = FastAPI()
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,13 +16,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Gemini
 genai.configure(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
-# WORKING MODEL
-model = genai.GenerativeModel("gemini-pro")
+model = genai.GenerativeModel(
+    "models/gemini-1.5-flash"
+)
 
 @app.get("/")
 def home():
