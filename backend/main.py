@@ -3,14 +3,16 @@ from fastapi import FastAPI, UploadFile, File
 import google.generativeai as genai
 from dotenv import load_dotenv
 import os
+import pdfplumber
+import io
 
-# Load environment variables
+# Load env
 load_dotenv()
 
 # FastAPI app
 app = FastAPI()
 
-# Enable CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,13 +21,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure Gemini
+# Gemini config
 genai.configure(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
-# Gemini model
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 # Home route
 @app.get("/")
@@ -36,18 +37,30 @@ def home():
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...)):
 
-    # Read uploaded file
-    content = await file.read()
+    # Read uploaded PDF
+    contents = await file.read()
 
+    # Extract text from PDF
+    pdf_text = ""
+
+    with pdfplumber.open(io.BytesIO(contents)) as pdf:
+        for page in pdf.pages:
+            text = page.extract_text()
+            if text:
+                pdf_text += text + "\n"
+
+    # Prompt
     prompt = f"""
-    Analyze this resume and give:
+    Analyze this resume and provide:
 
     1. Strengths
     2. Weaknesses
-    3. Skills improvement suggestions
+    3. Missing Skills
+    4. ATS Score
+    5. Improvement Suggestions
 
-    Resume filename:
-    {file.filename}
+    Resume:
+    {pdf_text}
     """
 
     # Gemini response
