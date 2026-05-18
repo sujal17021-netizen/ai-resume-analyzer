@@ -1,6 +1,6 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, UploadFile, File
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 import os
 
@@ -16,12 +16,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-genai.configure(
+client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
-)
-
-model = genai.GenerativeModel(
-    "models/gemini-1.5-flash"
 )
 
 @app.get("/")
@@ -33,8 +29,9 @@ async def analyze(file: UploadFile = File(...)):
 
     await file.read()
 
-    response = model.generate_content(
-        "Give 3 resume improvement tips."
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents="Give 3 resume improvement tips."
     )
 
     return {
